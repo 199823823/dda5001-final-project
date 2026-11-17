@@ -1,0 +1,15 @@
+{
+  "source": "https://github.com/CUHKSZ-Course/DDA5001-26Fall",
+  "commit": "e15b23d4db41ede3612e9ae3d44b704dfce8b7b0",
+  "sha256": {
+    "p1/check_solution.py": "7cbed764fda5370f4bb583ed00378d002bbd8e7504e755d8d8702dbc0989da7e",
+    "p1/evaluate.py": "b19470dacef5fb0819e3994b9ef1b70390d242aca2872954276b9b8c194768e5",
+    "p1/config/train_shakespeare_char.py": "13329e8c0007b3ae527d167185bfd511a24213f02abfc129fd0404931d294a23",
+    "p1/config/smoke.py": "ff3688d6f83d0eed1cfea21e831eb08871bae0fbfb1a5914c8b6d7a88ad9afb0",
+    "p1/data/shakespeare_char/input.txt": "a29d649defa42cc30feade39d794c74a4f54c23e7dac87b44ed9b9e3f20da95b",
+    "p1/data/shakespeare_char/meta.pkl": "6ee5a37533af83b67fcbe6b93705fde9e15e78bafe895f54b2cb2cb32534526c",
+    "p1/data/shakespeare_char/prepare.py": "14515e5d500c045b01dcbe1a9f0b4fb1bc108a1e3c5519f2efafac17607714ff",
+    "p1/data/shakespeare_char/train.bin": "6ec305602a99ac2802745a134e1f5e33e2231b4855525b00b9aebb730ac2626f",
+    "p1/data/shakespeare_char/val.bin": "d37d30cc0c8327c270d493299c3dca54135f6d5f1c9ef60cda78076e311204b1"
+  }
+}
