@@ -1,0 +1,41 @@
+Local preparation validation: 2026-11-17 (Asia/Shanghai)
+Official upstream: CUHKSZ-Course/DDA5001-26Fall
+Baseline commit: e15b23d4db41ede3612e9ae3d44b704dfce8b7b0
+
+Environment: Windows, Python 3.12.14, torch 2.9.1+cpu,
+numpy 2.2.6, matplotlib 3.10.6.
+Project virtual environment: .venv (excluded from Git).
+Common dependencies were reused read-only from the existing HW3 local dependency
+directory through a machine-local .pth file. PyTorch 2.9.1 was installed into
+this project's .venv. Recreate environments on other personal computers using
+the documented requirements; on classroom machines use the installed course venv.
+The downloaded PyPI Windows wheel SHA256 was verified:
+81a285002d7b8cfd3fdf1b98aa8df138d41f1a8334fd9ea37511517cedf43083
+
+PASS: python lab.py verify (exit code 0)
+PASS: supplied check_solution.py, unchanged from upstream.
+  causal mask, shifted positions, provided scores, native optimizer contracts,
+  exactly-once optimizer steps, and plotting contract.
+PASS: SHA256 of supplied data, evaluator, original configs and checker.
+PASS: default experiment copies differ only in permitted optimizer/out_dir fields.
+PASS: git diff --check and Python syntax compilation.
+
+Each official CPU smoke processed 1,024 prediction tokens in 8 updates:
+  checks/20261117-223809-328437-cpu-adamw : completed
+  checks/20261117-223809-328437-cpu-muon  : completed
+  checks/20261117-223809-328437-cpu-sgdm  : completed
+All three: last.pt saved, both loss plots generated, checkpoint reloaded and
+40 new characters sampled. These are tiny correctness checks, NOT report results.
+
+Before TODO completion, the checker was invoked but stopped because the
+pre-existing PyTorch 2.8.0 lacked native Muon. After completing the seven TODOs,
+the checker was invoked again and stopped for the same environment reason.
+After installing 2.9.1, the unchanged checker passed and all smoke checks passed.
+
+Not validated here: classroom CUDA, full gpt2-medium runs, full-run timing,
+six-run collection/export on real final results. Run python lab.py verify --gpu
+in the classroom before training. The six full experiments remain to be run.
+A personal private repository was subsequently created at
+https://github.com/199823823/dda5001-final-project.
+Linux entry point added: bash lab-linux.sh (uses the existing course environment).
+Linux execution is not locally tested: WSL is not installed on this computer.
