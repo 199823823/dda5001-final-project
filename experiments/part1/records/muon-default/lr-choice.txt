@@ -1,0 +1,1 @@
+Default validation loss bottoms at step 500 (1.5444) and rises to 4.0923. Test a fivefold reduction in Muon peak LR while preserving auxiliary AdamW LR.

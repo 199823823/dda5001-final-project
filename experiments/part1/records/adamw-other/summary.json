@@ -1,0 +1,18 @@
+{
+  "status": "completed",
+  "step": 5000,
+  "tokens": 92160000,
+  "train_seconds": 1260.3429219296377,
+  "checkpoint_seconds": 48.915509072947316,
+  "wall_seconds": 1328.7674714460009,
+  "endpoint_scores": {
+    "loss": 2.9571631848812103,
+    "perplexity": 19.243304554497207,
+    "bits_per_character": 4.266284661927535
+  },
+  "best_val_loss": 1.5328304171562195,
+  "tokens_per_second": 73122.9559800274,
+  "peak_memory_bytes": 21773741056,
+  "budget": "tokens",
+  "output": "/home/user2/dda5001-final-project/p1/runs/adamw-other"
+}

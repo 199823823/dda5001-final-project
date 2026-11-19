@@ -1,0 +1,1 @@
+Default validation loss bottoms at step 2500 (1.5163) and rebounds to 1.6582. Test halving the peak LR to see whether slower fitting softens the late rebound.

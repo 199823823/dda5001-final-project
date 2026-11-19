@@ -1,0 +1,1 @@
+Default validation loss bottoms at step 1000 (1.5448), then rises to 3.9869 as training loss falls. Test a fivefold reduction to slow fitting.

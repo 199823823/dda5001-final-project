@@ -1,0 +1,18 @@
+{
+  "status": "completed",
+  "step": 5000,
+  "tokens": 92160000,
+  "train_seconds": 1266.4135802267701,
+  "checkpoint_seconds": 50.082306091004284,
+  "wall_seconds": 1336.030471702994,
+  "endpoint_scores": {
+    "loss": 1.5358507931232452,
+    "perplexity": 4.645276018083359,
+    "bits_per_character": 2.2157643227842874
+  },
+  "best_val_loss": 1.5284740179777145,
+  "tokens_per_second": 72772.4350393474,
+  "peak_memory_bytes": 20564190720,
+  "budget": "tokens",
+  "output": "/home/user2/dda5001-final-project/p1/runs/sgdm-other"
+}

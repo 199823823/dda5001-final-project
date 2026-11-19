@@ -1,0 +1,18 @@
+{
+  "status": "completed",
+  "step": 5000,
+  "tokens": 92160000,
+  "train_seconds": 1519.8994049280445,
+  "checkpoint_seconds": 31.566048942040652,
+  "wall_seconds": 1571.0616407979978,
+  "endpoint_scores": {
+    "loss": 4.092313379049301,
+    "perplexity": 59.87825269702638,
+    "bits_per_character": 5.903960217717984
+  },
+  "best_val_loss": 1.544445738196373,
+  "tokens_per_second": 60635.59186955736,
+  "peak_memory_bytes": 20565732352,
+  "budget": "tokens",
+  "output": "/home/user2/dda5001-final-project/p1/runs/muon-default"
+}
