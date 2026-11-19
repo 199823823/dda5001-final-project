@@ -61,6 +61,8 @@ python lab.py verify --gpu
 
 ## 4. 六组正式实验
 
+可先运行 `python lab.py audit`，检查各配置只改变允许的学习率、优化器名称和输出目录。课件参数与项目固定参数的区别见 `LECTURE_NOTES_CN.md`。三个其他学习率配置尚未创建时，`audit` 会只检查已有配置；`train other` 和 `collect` 要求它们齐全。
+
 ```bash
 python lab.py train default
 ```
@@ -82,6 +84,8 @@ python lab.py collect
 `train` 发现同配置已完整完成会跳过训练；发现不完整目录会报错，不会覆盖。中途失败时先保留日志，按官方 `train.py --resume` 机制处理，或将失败目录移到 `runs` 外后从头重跑；本工具不自动续训。正式试验只运行一个任务，不能同时开多个终端训练。
 
 `collect` 校验六组 token 预算，生成各自训练/验证曲线、六组训练与验证汇总图、官方验证对比图、`p1/runs/endpoint-table.csv`（终点验证 loss、纯训练时间、墙钟时间）、AdamW 默认组终点文本和 `p1/outputs/` 中的结果 ZIP。比较终点用 `last.pt`，不要用可能位于较早时刻的 `best.pt`。
+
+汇总表还提供终点训练 loss、训练与验证差距、最佳记录验证点、终点相对最佳点的回退幅度、step 和 GPU 峰值已分配显存（GiB）。这些指标供你结合课件分析泛化和优化行为，不会自动宣称某种优化器更优或存在过拟合。正式训练不使用 early stopping。
 
 ## 5. 离开前备份并核对
 

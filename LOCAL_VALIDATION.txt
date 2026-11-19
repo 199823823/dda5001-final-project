@@ -39,3 +39,20 @@ A personal private repository was subsequently created at
 https://github.com/199823823/dda5001-final-project.
 Linux entry point added: bash lab-linux.sh (uses the existing course environment).
 Linux execution is not locally tested: WSL is not installed on this computer.
+
+2026-11-19 lecture-guided update:
+Restored the 16 missing config/data/setup files and removed 9 misplaced,
+byte-identical root files from p1/config. Native course optimizer implementations,
+official checker, evaluator, dataset and fixed training recipe are preserved.
+Reviewed slides10_annotated_L01.pdf, including handwritten Adam/memory/AdamW
+annotations. Added experiment configuration auditing, richer endpoint statistics,
+and lecture-to-code notes. The supplied lecture PDF is not included in Git.
+PASS: five experiment-integrity unit tests.
+PASS: unchanged official check_solution.py.
+PASS: all three CPU smoke runs (AdamW, Muon, SGDM), plots and checkpoint sampling.
+PASS: original data/evaluator/config/checker manifest and Linux script bash -n.
+The old .venv referenced a removed Codex runtime. Validation used the current
+bundled Python with the previously installed torch 2.9.1+cpu and common packages
+through a process-local PYTHONPATH. These machine-specific paths are not shipped
+as part of the classroom startup script.
+Still pending: actual Ubuntu/CUDA verification and the six full GPU experiments.

@@ -44,6 +44,69 @@ def completed(folder):
     return config, summary
 
 
+def validate_experiment_config(config, reference, method, kind):
+    """Preserve the course comparison, including Muon's auxiliary AdamW LR."""
+    field = FIELDS[method]
+    allowed = {'optimizer_name', 'out_dir', field}
+    changed = sorted(k for k in set(config) | set(reference)
+                     if k not in allowed and config.get(k) != reference.get(k))
+    if changed:
+        raise ValueError(f'{method}-{kind}: fixed settings changed: {changed}')
+    if config.get('optimizer_name') != method or config.get('out_dir') != f'runs/{method}-{kind}':
+        raise ValueError(f'{method}-{kind}: incorrect optimizer or output directory')
+    rate = config.get(field)
+    if type(rate) not in (int, float) or not math.isfinite(rate) or rate <= 0:
+        raise ValueError(f'{method}-{kind}: invalid learning rate')
+    if (kind == 'default' and rate != reference[field]) or (kind == 'other' and rate == reference[field]):
+        raise ValueError(f'{method}-{kind}: learning rate does not match experiment kind')
+
+
+def audit_experiments(require_others=False):
+    sys.path.insert(0, str(P1))
+    from configurator import load_config
+    from train import DEFAULTS
+    reference_path = P1 / 'config/train_shakespeare_char.py'
+    manifest = json.loads((ROOT / 'upstream-manifest.json').read_text(encoding='utf-8'))
+    if hashlib.sha256(reference_path.read_bytes()).hexdigest() != manifest['sha256']['p1/config/train_shakespeare_char.py']:
+        raise ValueError('The official reference configuration changed; restore it before comparing runs.')
+    reference = load_config(DEFAULTS, [str(reference_path)])
+    plans = {}
+    for method in FIELDS:
+        for kind in ('default', 'other'):
+            path = P1 / f'config/{method}-{kind}.py'
+            if kind == 'other' and not path.exists() and not require_others:
+                continue
+            if not path.is_file():
+                raise ValueError(f'Missing config: {path.name}; choose the other LR after baseline curves.')
+            config = load_config(DEFAULTS, [str(path)])
+            validate_experiment_config(config, reference, method, kind)
+            plans[method, kind] = config
+            print(f'AUDIT PASS: {method}-{kind}, peak LR={config[FIELDS[method]]:g}')
+    return plans
+
+
+def endpoint_statistics(config, summary, metrics):
+    if not metrics or summary.get('status') != 'completed':
+        raise ValueError('Only completed experiments with recorded metrics can be summarized')
+    endpoint = metrics[-1]
+    per_step = config['batch_size'] * config['block_size'] * config['gradient_accumulation_steps']
+    if (summary['tokens'] != config['max_tokens'] or summary['tokens'] != summary['step'] * per_step
+            or int(endpoint['tokens']) != summary['tokens'] or int(endpoint['step']) != summary['step']):
+        raise ValueError('Endpoint metrics, completed updates and token budget must agree')
+    train_loss, val_loss = float(endpoint['train_loss']), float(endpoint['val_loss'])
+    losses = [float(row['val_loss']) for row in metrics]
+    if not all(math.isfinite(value) for value in [train_loss, val_loss, *losses]):
+        raise ValueError('Cannot summarize non-finite losses')
+    best = min(losses)
+    best_row = metrics[losses.index(best)]
+    peak = summary.get('peak_memory_bytes')
+    return dict(train_loss=train_loss, val_loss=val_loss, generalization_gap=val_loss-train_loss,
+                best_val_loss=best, endpoint_minus_best=val_loss-best,
+                best_recorded_step=int(best_row['step']), step=summary['step'],
+                train_seconds=summary['train_seconds'], wall_seconds=summary.get('wall_seconds'),
+                peak_memory_gib=peak / 1024**3 if peak is not None else None, tokens=summary['tokens'])
+
+
 def verify(gpu):
     import torch
     import numpy as np
@@ -51,6 +114,7 @@ def verify(gpu):
     print(f'Python={sys.version}; torch={torch.__version__}; numpy={np.__version__}; matplotlib={matplotlib.__version__}')
     if not hasattr(torch.optim, 'Muon'):
         raise RuntimeError('Native torch.optim.Muon is required (PyTorch >= 2.9)')
+    audit_experiments()
     manifest = json.loads((ROOT / 'upstream-manifest.json').read_text(encoding='utf-8'))
     for name, expected in manifest['sha256'].items():
         actual = hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
@@ -80,6 +144,7 @@ def train(stage):
     import torch
     if not torch.cuda.is_available():
         raise RuntimeError('Full experiments require the classroom CUDA environment')
+    audit_experiments(require_others=stage in ('other', 'all'))
     run('check_solution.py')
     kinds = ['default', 'other'] if stage == 'all' else [stage]
     planned = [(method, kind) for kind in kinds for method in FIELDS]
@@ -95,7 +160,7 @@ def train(stage):
             from train import DEFAULTS
             from model import resolve_model_preset
             expected = resolve_model_preset(load_config(DEFAULTS, [str(P1 / f'config/{method}-{kind}.py')]))
-            if any(config.get(k) != v for k, v in expected.items()):
+            if any(config.get(k) != v for k, v in expected.items() if k not in ('data_dir', 'resume')):
                 raise ValueError(f'Existing results use another configuration: {folder}')
             print('Already completed:', folder)
         else:
@@ -104,6 +169,8 @@ def train(stage):
 
 
 def collect():
+    plans = audit_experiments(require_others=True)
+    from model import resolve_model_preset
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
@@ -113,18 +180,21 @@ def collect():
         for kind in ('default', 'other'):
             folder = P1 / f'runs/{method}-{kind}'
             config, summary = completed(folder)
+            expected = resolve_model_preset(plans[method, kind])
+            # Absolute dataset paths can change when results move between machines.
+            changed = sorted(k for k, v in expected.items() if k not in ('data_dir', 'resume') and config.get(k) != v)
+            if changed:
+                raise ValueError(f'{folder.name}: recorded settings differ from the plan: {changed}')
             if summary['tokens'] != 92160000:
                 raise ValueError(f'Not a full course experiment: {folder}')
             with (folder / 'metrics.csv').open(encoding='utf-8', newline='') as stream:
                 metrics = list(csv.DictReader(stream))
-            endpoint = metrics[-1]
-            if int(endpoint['tokens']) != summary['tokens']:
-                raise ValueError(f'Endpoint mismatch: {folder}')
             rows.append(dict(run=folder.name, optimizer=method, peak_lr=config[FIELDS[method]],
-                             val_loss=endpoint['val_loss'], train_seconds=summary['train_seconds'],
-                             wall_seconds=summary.get('wall_seconds'), tokens=summary['tokens']))
+                             **endpoint_statistics(config, summary, metrics)))
             for ax, field in zip(axes, ('train_loss', 'val_loss')):
                 ax.plot([int(r['tokens']) for r in metrics], [float(r[field]) for r in metrics],
+                        color={'adamw':'tab:blue', 'muon':'tab:orange', 'sgdm':'tab:green'}[method],
+                        linestyle='-' if kind == 'default' else '--',
                         label=f'{method} LR={config[FIELDS[method]]:g}')
                 ax.set(xlabel='Prediction tokens', ylabel='Loss (nats / character)', title=field)
             run('plot.py', f'--run-dir={folder}')
@@ -156,6 +226,7 @@ def main():
     choose.add_argument('lr', type=float)
     choose.add_argument('--reason', required=True, help='Observation from the default loss curve')
     sub.add_parser('collect')
+    sub.add_parser('audit', help='Check fixed settings and optimizer-specific learning rates')
     args = parser.parse_args()
     if args.command == 'verify':
         verify(args.gpu)
@@ -163,7 +234,10 @@ def main():
         train(args.stage)
     elif args.command == 'collect':
         collect()
+    elif args.command == 'audit':
+        audit_experiments()
     else:
+        audit_experiments()
         if not math.isfinite(args.lr) or args.lr <= 0 or args.lr == DEFAULT_RATES[args.optimizer]:
             parser.error('Choose a finite positive LR different from the default')
         completed(P1 / f'runs/{args.optimizer}-default')

@@ -21,6 +21,9 @@ For a private repository, sign in through GitHub's normal authentication flow.
 Read [the Chinese lab guide](LAB_GUIDE_CN.md) for choosing the other learning rates,
 collecting results, and backing up before the classroom machine reboots.
 See [local validation evidence](LOCAL_VALIDATION.txt) for exactly what was tested.
+Read [the Lecture 10 implementation notes](LECTURE_NOTES_CN.md) for AdamW/Muon
+details and interpreting the endpoint table. `python lab.py audit` checks that
+only the permitted learning-rate settings vary across the experiments.
 
 ## Official course information
 
